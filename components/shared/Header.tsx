@@ -20,10 +20,10 @@ const Header = () => {
             </nav>
           </SignedIn>
           <div className="flex w-32 items-center gap-3">
-            <SignedIn>
-                <UserButton redirectUrl="/"/>
-               <MobileNav/>
-            </SignedIn>
+      <SignedIn>
+        <UserButton />
+         <MobileNav/>
+      </SignedIn>
             <SignedOut>
                 <Button asChild className="rounded-full" size="lg">
                     <Link href="/sign-in">Login
