@@ -20,8 +20,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse("Missing Svix headers", { status: 400 });
 
   const wh = new Webhook(WEBHOOK_SECRET);
-  const payload = await req.json();
-  const body = JSON.stringify(payload);
+  const body = await req.text();
   let evt: WebhookEvent;
 
   try {
@@ -29,7 +28,7 @@ export async function POST(req: NextRequest) {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
-    }) as WebhookEvent
+    })as WebhookEvent;
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
     return new NextResponse("Invalid signature", { status: 400 });
