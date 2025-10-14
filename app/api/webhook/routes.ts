@@ -1,12 +1,38 @@
-import { verifyWebhook } from '@clerk/nextjs/webhooks'
+import { Webhook } from "svix";
+import type { WebhookEvent } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from 'next/server'
 import { createUser,deleteUser ,updateUser} from '@/lib/actions/user.actions'
 import { clerkClient } from '@clerk/nextjs/server'
 
 export async function POST(req: NextRequest) {
   try {
-    const evt = await verifyWebhook(req)
 
+  const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
+  if (!WEBHOOK_SECRET) throw new Error("Missing CLERK_WEBHOOK_SECRET");
+
+  const headerPayload = await headers();
+  const svix_id = headerPayload.get("svix-id");
+  const svix_timestamp = headerPayload.get("svix-timestamp");
+  const svix_signature = headerPayload.get("svix-signature");
+  const body = await req.text();
+
+  if (!svix_id || !svix_timestamp || !svix_signature)
+    return new NextResponse("Missing Svix headers", { status: 400 });
+
+  const wh = new Webhook(WEBHOOK_SECRET);
+  let evt;
+
+  try {
+    evt = wh.verify(body, {
+      "svix-id": svix_id,
+      "svix-timestamp": svix_timestamp,
+      "svix-signature": svix_signature,
+    }) as WebhookEvent
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err);
+    return new NextResponse("Invalid signature", { status: 400 });
+  }
     // Do something with payload
     // For this guide, log payload to console
     const { id } = evt.data
@@ -25,14 +51,14 @@ export async function POST(req: NextRequest) {
         }
 
         const newUser = await createUser(user)
-        if(newUser){
-            const client = await clerkClient();
-            await client.users.updateUserMetadata(id, {
-                publicMetadata: {
-                    userId: newUser._id
-                }
-            });
-        }
+    if (newUser) {
+      const client = await clerkClient();
+      await client.users.updateUserMetadata(id, {
+        publicMetadata: {
+          userId: newUser._id,
+        },
+      });
+    }
         return NextResponse.json({message:"OK",user:newUser})
 
     }
