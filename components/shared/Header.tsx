@@ -14,14 +14,16 @@ const Header = () => {
           alt="Evently Logo"
           />
           </Link>
+          <SignedIn>
             <nav className="md:flex-between hidden w-full max-w-xs">
                 <NavItems/>
             </nav>
+            </SignedIn>
           <div className="flex w-32 items-center gap-3">
       <SignedIn>
         <UserButton />
-      </SignedIn>
        <MobileNav/>
+      </SignedIn>
             <SignedOut>
                 <Button asChild className="rounded-full" size="lg">
                     <Link href="/sign-in">Login
