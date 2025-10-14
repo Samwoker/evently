@@ -15,13 +15,14 @@ export async function POST(req: NextRequest) {
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
   const svix_signature = headerPayload.get("svix-signature");
-  const body = await req.text();
 
   if (!svix_id || !svix_timestamp || !svix_signature)
     return new NextResponse("Missing Svix headers", { status: 400 });
 
   const wh = new Webhook(WEBHOOK_SECRET);
-  let evt;
+  const payload = await req.json();
+  const body = JSON.stringify(payload);
+  let evt: WebhookEvent;
 
   try {
     evt = wh.verify(body, {
